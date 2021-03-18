@@ -8,9 +8,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
-@Singleton
 class SessionManager @Inject constructor(
-    @ApplicationContext val application:Application
+     val application:Application
 ) {
 
     fun isConnectedToTheInternet(): Boolean{

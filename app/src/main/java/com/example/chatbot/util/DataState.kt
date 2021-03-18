@@ -37,7 +37,7 @@ data class DataState<T>(
             )
         }
 
-        fun <T> data(
+        fun <T> success(
             data: T? = null,
             display: Display? = null
         ): DataState<T> {

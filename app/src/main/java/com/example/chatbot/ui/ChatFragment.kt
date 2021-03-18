@@ -29,7 +29,11 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         setHasOptionsMenu(true) //Create a menu with 2 chat windows item and one new window item
 
         subscribeObservers()
-        initRecyclerViewAdapter()
+      //  initRecyclerViewAdapter()
+
+        //TEMPORARY
+        triggerGetResponseEvent("hi")
+
 
     }
 
@@ -96,7 +100,7 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     }
 
     private fun triggerGetResponseEvent(message: String) {
-        println("trigger user")
+
         chatViewModel.setStateEvent(GetResponseEvent(message));
     }
     //MENU RELATED

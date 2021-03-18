@@ -38,18 +38,27 @@ class ChatViewModel @Inject constructor(
 
             is SwitchChatWindowEvent -> {
                 //Load from db update RecyclerView and show the "Text in edittext if any"
-                return AbsentLiveData.create()
+                return chatRepository.loadFromDB(1)
             }
 
             is GetResponseEvent -> {
+
+                // -- used in two ways
+               // 1.To sync the offline cache
+                // 2.Normal add
+
+                //UPDATE
                 //   1.Make Api call
                 //   2.Update RecyclerView
-                return AbsentLiveData.create()
+
+
+                return chatRepository.getBotResponse("Hi",1)
             }
 
             is AddNewWindowEvent -> {
 
                 //Create a new item in option menu and Load a empty recyclerview
+                //add num to windownumlist
                 return AbsentLiveData.create()
             }
             is None ->{

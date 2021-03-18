@@ -15,6 +15,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityComponent
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -73,5 +74,11 @@ object ChatModule {
     ): ChatRepository {
         return ChatRepository(chatDao,chatApiService,sessionManager)
     }
+
+//    @Singleton
+//    @Provides
+//    fun provideSessionManager(@ApplicationContext application:Application): SessionManager {
+//        return SessionManager(application)
+//    }
 
 }

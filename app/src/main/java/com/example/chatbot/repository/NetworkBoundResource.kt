@@ -23,6 +23,7 @@ import kotlinx.coroutines.Dispatchers.IO
 abstract class NetworkBoundResource<ResponseObject, ViewStateType>
     (
     isNetworkAvailable: Boolean,// is their a network connection?
+    isNetworkRequest: Boolean
 ) {
 
     private val TAG: String = "AppDebug"
@@ -36,7 +37,9 @@ abstract class NetworkBoundResource<ResponseObject, ViewStateType>
         setJob(initNewJob())
         setValue(DataState.loading(isLoading = true, cachedData = null))
 
-//        if (isNetworkRequest) {
+        if (isNetworkRequest) {
+
+
             if (isNetworkAvailable) {
                 coroutineScope.launch {
 
@@ -58,25 +61,30 @@ abstract class NetworkBoundResource<ResponseObject, ViewStateType>
                     }
                 }
 
-                CoroutineScope(IO).launch {
-                    delay(NETWORK_TIMEOUT)
+            }
 
-                    if (!job.isCompleted) {
-                        Log.e(TAG, "NetworkBoundResource: JOB NETWORK TIMEOUT.")
-                        job.cancel(CancellationException(UNABLE_TO_RESOLVE_HOST))
-                    }
-                }
-            } else {
 
-                //TODO --  Insert the msg into db
+            else {
+
+                //TODO --  Insert the msg into db  COZ No Internet Connection
 
                 onErrorReturn(
                     UNABLE_TODO_OPERATION_WO_INTERNET,
-                    shouldUseDialog = true,
-                    shouldUseToast = false
+                    shouldUseDialog = false,
+                    shouldUseToast = true
                 )
             }
         }
+
+        else
+        {
+
+
+
+
+        }
+
+
 //    else {
 //            coroutineScope.launch {
 //                delay(TESTING_CACHE_DELAY)
@@ -84,7 +92,7 @@ abstract class NetworkBoundResource<ResponseObject, ViewStateType>
 //                createCacheRequestAndReturn()
 //            }
 //        }
-//    }
+    }
 
     suspend fun handleNetworkCall(response: GenericApiResponse<ResponseObject>) {
 
@@ -126,7 +134,7 @@ abstract class NetworkBoundResource<ResponseObject, ViewStateType>
         if (useDialog) {
             responseType = DisplayType.Dialog()
         }
-
+        Log.d("TAG", "onErrorReturn: " +msg)
         onCompleteJob(DataState.error(Display(msg, responseType)))
     }
 
