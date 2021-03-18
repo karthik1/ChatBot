@@ -5,6 +5,8 @@ import androidx.room.Room
 import com.example.chatbot.api.ChatApiService
 import com.example.chatbot.persistence.ChatDao
 import com.example.chatbot.persistence.ChatDatabase
+import com.example.chatbot.repository.ChatRepository
+import com.example.chatbot.session.SessionManager
 import com.example.chatbot.util.Constants.BASE_URL
 import com.example.chatbot.util.LiveDataCallAdapterFactory
 import com.google.gson.Gson
@@ -60,6 +62,16 @@ object ChatModule {
     @Provides
     fun provideChatDao(db: ChatDatabase): ChatDao {
         return db.getchatDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideChatRepository(
+        chatDao: ChatDao,
+        chatApiService: ChatApiService,
+        sessionManager: SessionManager,
+    ): ChatRepository {
+        return ChatRepository(chatDao,chatApiService,sessionManager)
     }
 
 }

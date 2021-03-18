@@ -1,8 +1,10 @@
 package com.example.chatbot.util
 
+
 import android.util.Log
 import retrofit2.Response
 
+@Suppress("unused") // T is used in extending classes
 sealed class GenericApiResponse<T> {
 
 

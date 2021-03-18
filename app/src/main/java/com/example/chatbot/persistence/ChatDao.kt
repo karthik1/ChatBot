@@ -18,6 +18,6 @@ interface ChatDao {
 //    fun updateChatStatus(status: String): Int
 
     @Query("SELECT * FROM chat_table WHERE chat_window_number = :pk")
-    suspend fun searchByWindowNum(pk: Int): LiveData<List<Chat>>?
+    suspend fun searchByWindowNum(pk: Int): List<Chat>?
 
 }
