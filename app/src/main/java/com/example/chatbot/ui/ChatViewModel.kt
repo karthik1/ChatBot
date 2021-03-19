@@ -53,7 +53,7 @@ class ChatViewModel @Inject constructor(
                 //   2.Update RecyclerView
 
 
-                return chatRepository.getBotResponse("Hi",1)
+                return chatRepository.getBotResponse(stateEvent.message,1)
             }
 
             is AddNewWindowEvent -> {

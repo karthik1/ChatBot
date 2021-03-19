@@ -1,10 +1,14 @@
 package com.example.chatbot.ui
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkRequest
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import androidx.activity.OnBackPressedCallback
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,9 +17,14 @@ import com.example.chatbot.adapter.ChatListAdapter
 import com.example.chatbot.databinding.FragmentChatBinding
 import com.example.chatbot.model.Chat
 import com.example.chatbot.model.ChatFactory
+import com.example.chatbot.session.SessionManager
 import com.example.chatbot.ui.state.ChatStateEvent.*
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.launch
 import javax.inject.Inject
+
 
 @AndroidEntryPoint
 class ChatFragment : Fragment() {
@@ -24,6 +33,12 @@ class ChatFragment : Fragment() {
     @Inject
     lateinit var mChatViewModel: ChatViewModel
 
+    @Inject
+    lateinit var chatFactory: ChatFactory
+
+    @Inject
+    lateinit var sessionManager: SessionManager
+
     val editTextString: String? = null
 
     lateinit var dataStateHandler: DataStateListener
@@ -31,10 +46,7 @@ class ChatFragment : Fragment() {
     lateinit var mChatlistView: RecyclerView;
     lateinit var mChatListAdapter: ChatListAdapter
     lateinit var layoutManager: LinearLayoutManager
-    val chatList: ArrayList<Chat> = ArrayList()
-
-    @Inject
-    lateinit var chatFactory: ChatFactory
+    var chatList: ArrayList<Chat> = ArrayList()
 
 
     override fun onCreateView(
@@ -48,25 +60,37 @@ class ChatFragment : Fragment() {
 
     }
 
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setHasOptionsMenu(true) //Create a menu with 2 chat windows item and one new window item
 
-
         initRecyclerViewAdapter()
-
-        //TEMPORARY
 
         mBinding.buttonSend.setOnClickListener(View.OnClickListener {
 
-            triggerGetResponseEvent(mBinding.messageInput.text.toString())
+            val message = mBinding.messageInput.text.toString()
+            val chat: Chat
+
+            if (sessionManager.isConnectedToTheInternet())
+                chat = chatFactory.createChatItem(message, 1, "online")
+            else
+                chat = chatFactory.createChatItem(message, 1, "offline")
+
+            chatList.add(chat)
+            mChatListAdapter.submitList(chatList)
+//        else
+
+            mChatlistView.scrollToPosition(mChatListAdapter.getItemCount() - 1);
+            triggerGetResponseEvent(message)
             mBinding.messageInput.setText("");
         })
 
-
+        connectivityCallBack()
         subscribeObservers()
+        triggerLoadChatWindowEvent()
 
-//        triggerLoadChatWindowEvent()
+
     }
 
 
@@ -82,13 +106,11 @@ class ChatFragment : Fragment() {
 
                     event.getContentIfNotHandled()?.let { chatViewState ->
                         chatViewState.chatList?.let {
+                            mChatViewModel.displayChat(it)
 
-                            // Update viewstate() in the viewmodel
                         }
 
                         chatViewState.chat?.let {
-
-                            // Update viewstate() in the viewmodel
                             mChatViewModel.loadTypedText(it)
                         }
                     }
@@ -99,15 +121,14 @@ class ChatFragment : Fragment() {
         mChatViewModel.viewState.observe(viewLifecycleOwner, Observer { chatViewState ->
 
             chatViewState.chatList?.let {
-
-                // Update the RecyclerView
+                chatList = it as ArrayList<Chat>
+                updateRecyclerViewAdapter(it)
             }
 
             chatViewState.chat?.let {
 
                 chatList.add(it)
-                mChatListAdapter.submitList(chatList)
-                mChatlistView.scrollToPosition(mChatListAdapter.getItemCount() - 1);
+                updateRecyclerViewAdapter(chatList)
                 Log.d("SIZE", "subscribeObservers: " + chatList?.size)
             }
 
@@ -129,6 +150,7 @@ class ChatFragment : Fragment() {
 
     }
 
+// STATE EVENTS
 
     private fun triggerLoadChatWindowEvent() {
 
@@ -144,18 +166,17 @@ class ChatFragment : Fragment() {
 
     private fun triggerGetResponseEvent(message: String) {
 
-        val chat = chatFactory.createChatItem(message, 1)
-        chatList.add(chat)
-        mChatListAdapter.submitList(chatList)
-        mChatlistView.scrollToPosition(mChatListAdapter.getItemCount() - 1);
+
         mChatViewModel.setStateEvent(GetResponseEvent(message));
     }
 
 
-    private fun updateRecyclerViewAdapter(list: List<Chat>?) {
-
+    private fun updateRecyclerViewAdapter(list: List<Chat>) {
+        mChatListAdapter.submitList(list)
+        mChatlistView.scrollToPosition(mChatListAdapter.getItemCount() - 1);
     }
-    //MENU RELATED
+
+//MENU RELATED
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
@@ -184,9 +205,54 @@ class ChatFragment : Fragment() {
         }
     }
 
+    private fun connectivityCallBack() {
+
+        val connectivityManager =
+            activity?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        val networkRequest = NetworkRequest.Builder().build()
+        connectivityManager.registerNetworkCallback(
+            networkRequest,
+            object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    super.onAvailable(network)
+                    if (mChatListAdapter?.itemCount != 0) {
+                        var chat = chatList.get(mChatListAdapter.itemCount - 1)
+                        if (chat.status.equals("offline")) {
+                            //Trigger GetResponseEvent
+                            chat.senderOrBotText?.let {
+                                CoroutineScope(Main).launch {
+                                    triggerGetResponseEvent(it)
+                                }
+
+                            }
+                        }
+                    }
+                }
+
+                override fun onLost(network: Network) {
+                    super.onLost(network)
+                    Log.i("Tag", "losing active connection")
+                }
+            })
+    }
+//        val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+//
+//        connectivityManager?.let {
+//            it.registerDefaultNetworkCallback(object : ConnectivityManager.NetworkCallback() {
+//                override fun onAvailable(network: Network) {
+//                    Log.d("Network ", "onAvailable: ")
+//                }
+//
+//                override fun onLost(network: Network) {
+//                    Log.d("Network", "onLost: ")
+//                    //take action when network connection is lost
+//                }
+//            })
+//        }
+
 
 }
-
 
 
 //        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,

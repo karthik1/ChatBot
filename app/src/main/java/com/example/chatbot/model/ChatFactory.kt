@@ -14,13 +14,14 @@ constructor(
 
    public fun createChatItem(
         text: String,
-        chatWindowNum: Int
+        chatWindowNum: Int,
+        status:String
     ): Chat {
         return Chat(
             chatId = null,
             senderOrBotText = text,
             chatWindowNum = chatWindowNum,
-            status = "Sending",
+            status = status,
             timeStamp = dateUtil . getCurrentTimestamp (),
         )
     }

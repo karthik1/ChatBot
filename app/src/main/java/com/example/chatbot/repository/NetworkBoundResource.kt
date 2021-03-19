@@ -35,14 +35,14 @@ abstract class NetworkBoundResource<ResponseObject, ViewStateType>
     init {
 
         setJob(initNewJob())
-        setValue(DataState.loading(isLoading = true, cachedData = null))
 
         if (isNetworkRequest) {
 
-
             if (isNetworkAvailable) {
+
                 coroutineScope.launch {
 
+                    createCacheRequestAndReturn("online")
                     // simulate a network delay for testing
 //                    delay(TESTING_NETWORK_DELAY)
 
@@ -61,12 +61,11 @@ abstract class NetworkBoundResource<ResponseObject, ViewStateType>
                     }
                 }
 
-            }
+            } else {
 
-
-            else {
-
-                //TODO --  Insert the msg into db  COZ No Internet Connection
+                    coroutineScope.launch {
+                        createCacheRequestAndReturn("offline")
+                    }
 
                 onErrorReturn(
                     UNABLE_TODO_OPERATION_WO_INTERNET,
@@ -74,14 +73,12 @@ abstract class NetworkBoundResource<ResponseObject, ViewStateType>
                     shouldUseToast = true
                 )
             }
-        }
+        } else {
 
-        else
-        {
-
-
-
-
+            setValue(DataState.loading(isLoading = true, cachedData = null))
+            coroutineScope.launch {
+                createCacheRequestAndReturn("online")
+            }
         }
 
 
@@ -134,7 +131,7 @@ abstract class NetworkBoundResource<ResponseObject, ViewStateType>
         if (useDialog) {
             responseType = DisplayType.Dialog()
         }
-        Log.d("TAG", "onErrorReturn: " +msg)
+        Log.d("TAG", "onErrorReturn: " + msg)
         onCompleteJob(DataState.error(Display(msg, responseType)))
     }
 
@@ -158,7 +155,7 @@ abstract class NetworkBoundResource<ResponseObject, ViewStateType>
                         } ?: onErrorReturn("Unknown error.", false, true)
                     } else if (job.isCompleted) {
                         Log.e(TAG, "NetworkBoundResource: Job has been completed.")
-                        // Do nothing? Should be handled already
+                        // Do nothing -- Should be handled already at respective places
                     }
                 }
             })
@@ -166,7 +163,7 @@ abstract class NetworkBoundResource<ResponseObject, ViewStateType>
         return job
     }
 
-    abstract suspend fun createCacheRequestAndReturn()
+    abstract suspend fun createCacheRequestAndReturn(sendStatus: String)
 
     fun asLiveData() = result as LiveData<DataState<ViewStateType>>
 

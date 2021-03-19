@@ -23,7 +23,6 @@
             android:id="@+id/profile_image"
             android:layout_width="0dp"
             android:layout_height="35dp"
-
             android:layout_weight="0.5"
             android:src="@drawable/bot"
             app:civ_border_color="#FF000000"
@@ -45,8 +44,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
+
                 android:gravity="center_vertical|start"
-                android:padding="4dp"
+                android:padding="12dp"
                 android:textColor="@color/default_message_color_rcv"
                 android:textSize="@dimen/default_message_text_size"
                 tools:text="My name is Timi and  hbjh asdb dbjbsd d chd hj cd dch sd " />

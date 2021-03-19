@@ -3,6 +3,7 @@ package com.example.chatbot.di
 import android.app.Application
 import androidx.room.Room
 import com.example.chatbot.api.ChatApiService
+import com.example.chatbot.model.ChatFactory
 import com.example.chatbot.persistence.ChatDao
 import com.example.chatbot.persistence.ChatDatabase
 import com.example.chatbot.repository.ChatRepository
@@ -67,14 +68,17 @@ object ChatModule {
         return db.getchatDao()
     }
 
+
+
     @Singleton
     @Provides
     fun provideChatRepository(
         chatDao: ChatDao,
         chatApiService: ChatApiService,
         sessionManager: SessionManager,
+        chatFactory: ChatFactory
     ): ChatRepository {
-        return ChatRepository(chatDao,chatApiService,sessionManager)
+        return ChatRepository(chatDao,chatApiService,sessionManager,chatFactory)
     }
 
     @Singleton

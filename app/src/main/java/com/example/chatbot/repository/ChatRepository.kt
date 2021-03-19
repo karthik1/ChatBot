@@ -5,14 +5,17 @@ import androidx.lifecycle.LiveData
 import com.example.chatbot.api.ChatApiService
 import com.example.chatbot.api.response.MessageResponse
 import com.example.chatbot.model.Chat
+import com.example.chatbot.model.ChatFactory
 import com.example.chatbot.persistence.ChatDao
 import com.example.chatbot.session.SessionManager
 import com.example.chatbot.ui.state.ChatViewState
 import com.example.chatbot.util.AbsentLiveData
 import com.example.chatbot.util.DataState
+import com.example.chatbot.util.Display
 import com.example.chatbot.util.GenericApiResponse
 import com.example.chatbot.util.GenericApiResponse.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import java.text.SimpleDateFormat
 import java.util.*
@@ -22,7 +25,8 @@ import javax.inject.Inject
 class ChatRepository @Inject constructor(
     val chatDao: ChatDao,
     val chatApiService: ChatApiService,
-    val sessionManager: SessionManager
+    val sessionManager: SessionManager,
+    val chatFactory: ChatFactory
 ) {
 
     private var repositoryJob: Job? = null
@@ -33,9 +37,23 @@ class ChatRepository @Inject constructor(
             sessionManager.isConnectedToTheInternet(), true
 
         ) {
+            override suspend fun createCacheRequestAndReturn(onlineStatus:String) {
 
-            override suspend fun createCacheRequestAndReturn() {
-                TODO("Not yet implemented")
+                //Replace it with DateUtil
+
+                    val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy-hh-mm-ss")
+                    val format: String = simpleDateFormat.format(Date())
+                    Log.d("MainActivity", "Current Timestamp: $format")
+
+                    //Replace it With ChatFactory
+                    val chatRow = Chat(
+                        senderOrBotText = senderText,
+                        chatWindowNum = chatWindowNum,
+                        timeStamp = format,
+                        status = "send"
+
+                    )
+                    val rowId = chatDao.insert(chatRow)
             }
 
             override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<MessageResponse>) {
@@ -49,14 +67,16 @@ class ChatRepository @Inject constructor(
 //                    val botResponse = botResponseObj?.asString
                     Log.d("SUCCESS RESPONSE", "handleApiSuccessResponse: ")
 
-                    //TODO -- > Create An Extension Function to create Date
 
+                    //Replace it with DateUtil
                     val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy-hh-mm-ss")
                     val format: String = simpleDateFormat.format(Date())
                     Log.d("MainActivity", "Current Timestamp: $format")
 
 
+//                    val chat = chatFactory.createChatItem("null",botResponse,chatWindowNum,format,"recv")
 
+                    //Replace it With ChatFactory
                     val chatRow = Chat(
                         senderOrBotText = botResponse,
                         chatWindowNum = chatWindowNum,
@@ -70,19 +90,15 @@ class ChatRepository @Inject constructor(
 
                     //Check if the insertion successfull then set The result
 
-
-                    CoroutineScope(Main).launch {
-                        setValue(
-                            DataState.success(
-                                data = ChatViewState(chatList = null,chat = chatRow)
+                    if (rowId > -1)
+                        CoroutineScope(Main).launch {
+                            setValue(
+                                DataState.success(
+                                    data = ChatViewState(chatList = null, chat = chatRow)
+                                )
                             )
-                        )
-
-                    }
-
+                        }
                 }
-
-
             }
 
             override fun createCall(): LiveData<GenericApiResponse<MessageResponse>> {
@@ -106,27 +122,35 @@ class ChatRepository @Inject constructor(
     fun loadFromDB(chatWindowNum: Int): LiveData<DataState<ChatViewState>> {
 
         return object : NetworkBoundResource<MessageResponse, ChatViewState>(
-            sessionManager.isConnectedToTheInternet(), true
+            sessionManager.isConnectedToTheInternet(), false
 
         ) {
-            override suspend fun createCacheRequestAndReturn() {
+            override suspend fun createCacheRequestAndReturn(onlineStatus:String) {
 
                 val chatlist = chatDao.searchByWindowNum(chatWindowNum)
-                CoroutineScope(Main).launch {
-                    setValue(
-                        DataState.success(
-                            data = ChatViewState(chatList = chatlist, null),
-                            display = null
-                        )
-                    )
-                }
 
+                CoroutineScope(Main).launch {
+                    chatlist?.let {
+
+                        setValue(
+                            DataState.success(
+                                data = ChatViewState(chatList = chatlist, null),
+                                display = null
+                            )
+                        )
+
+                    }
+                    if (chatlist == null)
+                        onErrorReturn("Failed to load from DB", false, true)
+                }
             }
 
+            //NOT NEEDED HERE
             override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<MessageResponse>) {
 
             }
 
+            //NOT NEEDED HERE
             override fun createCall(): LiveData<GenericApiResponse<MessageResponse>> {
                 return AbsentLiveData.create()
             }
