@@ -31,19 +31,26 @@ class ChatRepository @Inject constructor(
 
     private var repositoryJob: Job? = null
 
-    fun getBotResponse(senderText: String, chatWindowNum: Int): LiveData<DataState<ChatViewState>> {
+    fun getBotResponse(
+        senderText: String,
+        status: String,
+        chatWindowNum: Int
+    ): LiveData<DataState<ChatViewState>> {
 
         return object : NetworkBoundResource<MessageResponse, ChatViewState>(
             sessionManager.isConnectedToTheInternet(), true
 
         ) {
-            override suspend fun createCacheRequestAndReturn(onlineStatus:String) {
+            override suspend fun createCacheRequestAndReturn(onlineStatus: String) {
 
                 //Replace it with DateUtil
 
-                    val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy-hh-mm-ss")
-                    val format: String = simpleDateFormat.format(Date())
-                    Log.d("MainActivity", "Current Timestamp: $format")
+                val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy-hh-mm-ss")
+                val format: String = simpleDateFormat.format(Date())
+                Log.d("MainActivity", "Current Timestamp: $format")
+
+                //To avoid Duplication
+                if (status.equals("new")) {
 
                     //Replace it With ChatFactory
                     val chatRow = Chat(
@@ -54,6 +61,7 @@ class ChatRepository @Inject constructor(
 
                     )
                     val rowId = chatDao.insert(chatRow)
+                }
             }
 
             override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<MessageResponse>) {
@@ -125,7 +133,7 @@ class ChatRepository @Inject constructor(
             sessionManager.isConnectedToTheInternet(), false
 
         ) {
-            override suspend fun createCacheRequestAndReturn(onlineStatus:String) {
+            override suspend fun createCacheRequestAndReturn(onlineStatus: String) {
 
                 val chatlist = chatDao.searchByWindowNum(chatWindowNum)
 

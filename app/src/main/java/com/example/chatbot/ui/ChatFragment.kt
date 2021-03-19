@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.chatbot.R
 import com.example.chatbot.adapter.ChatListAdapter
 import com.example.chatbot.databinding.FragmentChatBinding
 import com.example.chatbot.model.Chat
@@ -82,14 +83,15 @@ class ChatFragment : Fragment() {
 //        else
 
             mChatlistView.scrollToPosition(mChatListAdapter.getItemCount() - 1);
-            triggerGetResponseEvent(message)
+            triggerGetResponseEvent(message, "new")
             mBinding.messageInput.setText("");
         })
 
-        connectivityCallBack()
-        subscribeObservers()
-        triggerLoadChatWindowEvent()
+        networkConnectivityCallBack()
 
+        subscribeObservers()
+
+        triggerLoadChatWindowEvent()
 
     }
 
@@ -164,10 +166,10 @@ class ChatFragment : Fragment() {
         mChatViewModel.setStateEvent(AddNewWindowEvent());
     }
 
-    private fun triggerGetResponseEvent(message: String) {
+    private fun triggerGetResponseEvent(message: String, status: String) {
 
 
-        mChatViewModel.setStateEvent(GetResponseEvent(message));
+        mChatViewModel.setStateEvent(GetResponseEvent(message, status));
     }
 
 
@@ -180,7 +182,7 @@ class ChatFragment : Fragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-
+        inflater.inflate(R.menu.chat_menu, menu)
 
         // TODO --> Menu for MultipleWindows
 //        inflater.inflate(R.menu.main_menu, menu)
@@ -188,13 +190,26 @@ class ChatFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.chat_1 -> {
 
+            }
+            R.id.chat_2 -> {
 
+            }
+            R.id.chat_3 -> {
+
+            }
             // TODO --> Menu item to create new window  or move to other window
         }
 
         return super.onOptionsItemSelected(item)
     }
+
+
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        super.onPrepareOptionsMenu(menu)
+    }
+
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -205,7 +220,7 @@ class ChatFragment : Fragment() {
         }
     }
 
-    private fun connectivityCallBack() {
+    private fun networkConnectivityCallBack() {
 
         val connectivityManager =
             activity?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -220,11 +235,13 @@ class ChatFragment : Fragment() {
                     Log.i("Tag", "got active connection")
                     if (mChatListAdapter?.itemCount != 0) {
                         var chat = chatList.get(mChatListAdapter.itemCount - 1)
+
+                        var status = chat.status
                         if (chat.status.equals("offline")) {
                             //Trigger GetResponseEvent
                             chat.senderOrBotText?.let {
                                 CoroutineScope(Main).launch {
-                                    triggerGetResponseEvent(it)
+                                    triggerGetResponseEvent(it, status)
                                 }
 
                             }

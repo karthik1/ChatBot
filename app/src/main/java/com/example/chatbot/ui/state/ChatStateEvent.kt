@@ -6,7 +6,7 @@ sealed class ChatStateEvent {
     class SwitchChatWindowEvent():ChatStateEvent()
 
     //To load already typed message before Changing the window
-    class GetResponseEvent(val message:String) :
+    class GetResponseEvent(val message:String,val status:String) :
         ChatStateEvent()
 
     // TODO --> Add third stateEvent for creating new window
