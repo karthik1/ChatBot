@@ -14,11 +14,11 @@ constructor(
 
    public fun createChatItem(
         text: String,
-        chatWindowNum: Int,
+        chatWindowNum: Int?,
         status:String
     ): Chat {
         return Chat(
-            chatId = null,
+            chatId = UUID.randomUUID().toString(),
             senderOrBotText = text,
             chatWindowNum = chatWindowNum,
             status = status,

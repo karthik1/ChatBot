@@ -11,17 +11,17 @@ data class Chat(
 
     @PrimaryKey(autoGenerate = false)
     @ColumnInfo(name = "chat_id")
-    val chatId: Int? = null,
+    val chatId: String ,
 
     @ColumnInfo(name = "text_message")
     val senderOrBotText: String? = null,
 
     @ColumnInfo(name = "chat_window_number")
-    var chatWindowNum: Int,
+    var chatWindowNum: Int?=null,
 
     @ColumnInfo(name = "created_time")
-    var timeStamp: String,
+    var timeStamp: String?=null,
 
     @ColumnInfo(name = "text_status")
-    var status: String,
+    var status: String?=null,
 )

@@ -13,7 +13,7 @@
 
     <item
         android:id="@+id/chat_3"
-        android:title="Chat Window 2"
+        android:title="Chat Window 3"
         app:showAsAction="never"/>
 
 </menu>

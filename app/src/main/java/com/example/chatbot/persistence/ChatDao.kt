@@ -17,7 +17,7 @@ interface ChatDao {
 //    @Query("UPDATE chat_table SET status = "sent" WHERE status = "not sent")
 //    fun updateChatStatus(status: String): Int
 
-    @Query("SELECT * FROM chat_table WHERE chat_window_number = :pk")
-    suspend fun searchByWindowNum(pk: Int): List<Chat>?
+    @Query("SELECT distinct * FROM chat_table WHERE chat_window_number = :pk")
+    suspend fun searchByWindowNum(pk: Int?): List<Chat>?
 
 }

@@ -32,9 +32,9 @@ class ChatRepository @Inject constructor(
     private var repositoryJob: Job? = null
 
     fun getBotResponse(
-        senderText: String,
-        status: String,
-        chatWindowNum: Int
+        senderText: String?,
+        status: String?,
+        chatWindowNum: Int?
     ): LiveData<DataState<ChatViewState>> {
 
         return object : NetworkBoundResource<MessageResponse, ChatViewState>(
@@ -54,6 +54,7 @@ class ChatRepository @Inject constructor(
 
                     //Replace it With ChatFactory
                     val chatRow = Chat(
+                        chatId = UUID.randomUUID().toString(),
                         senderOrBotText = senderText,
                         chatWindowNum = chatWindowNum,
                         timeStamp = format,
@@ -86,6 +87,7 @@ class ChatRepository @Inject constructor(
 
                     //Replace it With ChatFactory
                     val chatRow = Chat(
+                        chatId = UUID.randomUUID().toString(),
                         senderOrBotText = botResponse,
                         chatWindowNum = chatWindowNum,
                         timeStamp = format,
@@ -127,7 +129,7 @@ class ChatRepository @Inject constructor(
         }.asLiveData()
     }
 
-    fun loadFromDB(chatWindowNum: Int): LiveData<DataState<ChatViewState>> {
+    fun loadFromDB(chatWindowNum: Int?): LiveData<DataState<ChatViewState>> {
 
         return object : NetworkBoundResource<MessageResponse, ChatViewState>(
             sessionManager.isConnectedToTheInternet(), false
@@ -137,17 +139,20 @@ class ChatRepository @Inject constructor(
 
                 val chatlist = chatDao.searchByWindowNum(chatWindowNum)
 
+
                 CoroutineScope(Main).launch {
-                    chatlist?.let {
 
-                        setValue(
-                            DataState.success(
-                                data = ChatViewState(chatList = chatlist, null),
-                                display = null
-                            )
+                    setValue(
+                        DataState.success(
+                            data = ChatViewState(chatList = chatlist, null),
+                            display = null
                         )
+                    )
+//                   }else
+//                   {
+//                      onErrorReturn("Chat History Not Found",false,true)
+//                   }
 
-                    }
                     if (chatlist == null)
                         onErrorReturn("Failed to load from DB", false, true)
                 }

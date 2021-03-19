@@ -39,21 +39,12 @@ class ChatViewModel @Inject constructor(
 
             is SwitchChatWindowEvent -> {
                 //Load from db update RecyclerView and show the "Text in edittext if any"
-                return chatRepository.loadFromDB(1)
+                return chatRepository.loadFromDB(stateEvent.chatWindowNum)
             }
 
             is GetResponseEvent -> {
 
-                // -- used in two ways
-               // 1.To sync the offline cache
-                // 2.Normal add
-
-                //UPDATE
-                //   1.Make Api call
-                //   2.Update RecyclerView
-
-
-                return chatRepository.getBotResponse(stateEvent.message,stateEvent.status,1)
+                return chatRepository.getBotResponse(stateEvent.message,stateEvent.status,stateEvent.chatWindowNum)
             }
 
             is AddNewWindowEvent -> {
@@ -69,14 +60,17 @@ class ChatViewModel @Inject constructor(
     }
 
     fun displayChat(chatList: List<Chat>) {
+
         val update = getCurrentViewStateOrNew()
         update.chatList = chatList
+        update.chat = null;
         _viewState.value = update
     }
 
     fun loadTypedText(chat: Chat) {
         val update = getCurrentViewStateOrNew()
         update.chat = chat
+        update.chatList = null
         _viewState.value = update
     }
 

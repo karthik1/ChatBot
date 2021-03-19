@@ -1,14 +1,14 @@
 package com.example.chatbot.ui
 
 import android.content.Context
+import android.content.Context.MODE_PRIVATE
+import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkRequest
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,7 +22,9 @@ import com.example.chatbot.session.SessionManager
 import com.example.chatbot.ui.state.ChatStateEvent.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -47,7 +49,17 @@ class ChatFragment : Fragment() {
     lateinit var mChatlistView: RecyclerView;
     lateinit var mChatListAdapter: ChatListAdapter
     lateinit var layoutManager: LinearLayoutManager
+    lateinit var sharedPreference: SharedPreferences
+    lateinit var preferenceEditor: SharedPreferences.Editor
+
+    val CURRENT_WINDOW: String = "current_window";
+
+
+
+    var currentWindow: Int? = null
+
     var chatList: ArrayList<Chat> = ArrayList()
+    var offlineList: ArrayList<Chat> = ArrayList()
 
 
     override fun onCreateView(
@@ -68,31 +80,55 @@ class ChatFragment : Fragment() {
 
         initRecyclerViewAdapter()
 
-        mBinding.buttonSend.setOnClickListener(View.OnClickListener {
-
-            val message = mBinding.messageInput.text.toString()
-            val chat: Chat
-
-            if (sessionManager.isConnectedToTheInternet())
-                chat = chatFactory.createChatItem(message, 1, "online")
-            else
-                chat = chatFactory.createChatItem(message, 1, "offline")
-
-            chatList.add(chat)
-            mChatListAdapter.submitList(chatList)
-//        else
-
-            mChatlistView.scrollToPosition(mChatListAdapter.getItemCount() - 1);
-            triggerGetResponseEvent(message, "new")
-            mBinding.messageInput.setText("");
-        })
+        setSendButtonClick()
 
         networkConnectivityCallBack()
 
+        initSharedPref()
+
         subscribeObservers()
 
-        triggerLoadChatWindowEvent()
+        triggerLoadChatWindowEvent(currentWindow)
 
+
+    }
+
+    private fun initSharedPref() {
+        sharedPreference = this.requireActivity().getSharedPreferences("pref", Context.MODE_PRIVATE)
+        preferenceEditor = sharedPreference.edit()
+
+        currentWindow = sharedPreference.getInt(CURRENT_WINDOW, 0)
+
+        if (currentWindow == 0) {
+            preferenceEditor.putInt(CURRENT_WINDOW, 1)
+            currentWindow = 1
+        }
+        preferenceEditor.commit()
+    }
+
+    private fun setSendButtonClick() {
+
+        mBinding.buttonSend.setOnClickListener(View.OnClickListener {
+
+            val message = mBinding.messageInput.text.toString()
+            if (message.length > 0 && !message.equals("")) {
+                val chat: Chat
+
+                if (sessionManager.isConnectedToTheInternet())
+                    chat = chatFactory.createChatItem(message, currentWindow, "online")
+                else
+                    chat = chatFactory.createChatItem(message, currentWindow, "offline")
+
+
+                chatList.add(chat)
+                mChatListAdapter.submitList(chatList)
+                mChatlistView.scrollToPosition(mChatListAdapter.getItemCount() - 1);
+
+                triggerGetResponseEvent(message, "new", currentWindow)
+                mBinding.messageInput.setText("");
+            }
+
+        })
     }
 
 
@@ -109,11 +145,12 @@ class ChatFragment : Fragment() {
                     event.getContentIfNotHandled()?.let { chatViewState ->
                         chatViewState.chatList?.let {
                             mChatViewModel.displayChat(it)
-
+                            Log.d("SIZE1.", "subscribeObservers: " + chatList?.size)
                         }
 
                         chatViewState.chat?.let {
                             mChatViewModel.loadTypedText(it)
+                            Log.d("SIZE2..", "subscribeObservers: " + chatList?.size)
                         }
                     }
                 }
@@ -125,18 +162,32 @@ class ChatFragment : Fragment() {
             chatViewState.chatList?.let {
                 chatList = it as ArrayList<Chat>
                 updateRecyclerViewAdapter(it)
+                checkForOfflineMessages()
             }
 
             chatViewState.chat?.let {
 
-                chatList.add(it)
-                updateRecyclerViewAdapter(chatList)
-                Log.d("SIZE", "subscribeObservers: " + chatList?.size)
+                if (it.chatWindowNum == currentWindow) {
+                    chatList.add(it)
+                    updateRecyclerViewAdapter(chatList)
+                }
             }
-
         })
+    }
 
-
+    fun checkForOfflineMessages() {
+        if (mChatListAdapter?.itemCount != 0) {
+            var chat = chatList.get(mChatListAdapter.itemCount - 1)
+            var status = chat.status
+            if (chat.status.equals("offline")) {
+                //Trigger GetResponseEvent
+                chat.senderOrBotText?.let {
+                    CoroutineScope(Main).launch {
+                        triggerGetResponseEvent(it, status, currentWindow)
+                    }
+                }
+            }
+        }
     }
 
     private fun initRecyclerViewAdapter() {
@@ -153,23 +204,21 @@ class ChatFragment : Fragment() {
     }
 
 // STATE EVENTS
-
-    private fun triggerLoadChatWindowEvent() {
+    private fun triggerLoadChatWindowEvent(chatWindowNum: Int?) {
 
         //Store the text if ter is any in the editted -- Later change it to hashmap
-        mChatViewModel.setStateEvent(SwitchChatWindowEvent());
+        mChatViewModel.setStateEvent(SwitchChatWindowEvent(chatWindowNum));
     }
 
+
+    //Dint use this case
     private fun triggerNewChatWindowEvent() {
 
-        //Store the text if ter is any in the editted -- Later change it to hashmap
         mChatViewModel.setStateEvent(AddNewWindowEvent());
     }
 
-    private fun triggerGetResponseEvent(message: String, status: String) {
-
-
-        mChatViewModel.setStateEvent(GetResponseEvent(message, status));
+    private fun triggerGetResponseEvent(message: String, status: String?, chatWindowNum: Int?) {
+        mChatViewModel.setStateEvent(GetResponseEvent(message, status, currentWindow))
     }
 
 
@@ -191,22 +240,37 @@ class ChatFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.chat_1 -> {
-
+                if (currentWindow != 1) {
+                    currentWindow = 1
+                    preferenceEditor.putInt(CURRENT_WINDOW, currentWindow!!)
+                    triggerLoadChatWindowEvent(currentWindow)
+                }
             }
             R.id.chat_2 -> {
+                if (currentWindow != 2) {
+                    currentWindow = 2
+                    preferenceEditor.putInt(CURRENT_WINDOW, currentWindow!!)
+                    triggerLoadChatWindowEvent(currentWindow)
+                }
 
             }
             R.id.chat_3 -> {
+                if (currentWindow != 3) {
 
+                    currentWindow = 3
+                    preferenceEditor.putInt(CURRENT_WINDOW, currentWindow!!)
+                    triggerLoadChatWindowEvent(currentWindow)
+
+                }
             }
-            // TODO --> Menu item to create new window  or move to other window
         }
-
         return super.onOptionsItemSelected(item)
     }
 
+// For Dynamic Implementation
 
     override fun onPrepareOptionsMenu(menu: Menu) {
+
         super.onPrepareOptionsMenu(menu)
     }
 
@@ -231,22 +295,8 @@ class ChatFragment : Fragment() {
             object : ConnectivityManager.NetworkCallback() {
                 override fun onAvailable(network: Network) {
                     super.onAvailable(network)
-
                     Log.i("Tag", "got active connection")
-                    if (mChatListAdapter?.itemCount != 0) {
-                        var chat = chatList.get(mChatListAdapter.itemCount - 1)
-
-                        var status = chat.status
-                        if (chat.status.equals("offline")) {
-                            //Trigger GetResponseEvent
-                            chat.senderOrBotText?.let {
-                                CoroutineScope(Main).launch {
-                                    triggerGetResponseEvent(it, status)
-                                }
-
-                            }
-                        }
-                    }
+                    checkForOfflineMessages()
                 }
 
                 override fun onLost(network: Network) {
@@ -254,49 +304,14 @@ class ChatFragment : Fragment() {
                     Log.i("Tag", "losing active connection")
                 }
             })
+
     }
-//        val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-//
-//        connectivityManager?.let {
-//            it.registerDefaultNetworkCallback(object : ConnectivityManager.NetworkCallback() {
-//                override fun onAvailable(network: Network) {
-//                    Log.d("Network ", "onAvailable: ")
-//                }
-//
-//                override fun onLost(network: Network) {
-//                    Log.d("Network", "onLost: ")
-//                    //take action when network connection is lost
-//                }
-//            })
-//        }
 
+    override fun onDestroy() {
 
+        preferenceEditor.putInt(CURRENT_WINDOW, 1)
+        preferenceEditor.commit()
+
+        super.onDestroy()
+    }
 }
-
-
-//        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,
-//            object : OnBackPressedCallback(true) {
-//                override fun handleOnBackPressed() {
-//                    if (mBinding.messageInput.hasFocus())
-//                        mBinding.messageInput.clearFocus()
-////                    else
-////                        activity?.onBackPressed()
-//                }
-//            }
-//        )
-
-
-//        mBinding.messageInput.setOnFocusChangeListener(object : View.OnFocusChangeListener {
-//            override fun onFocusChange(v: View?, hasFocus: Boolean) {
-//                if (!hasFocus) {
-//                    Log.d("FOCUS CHANGE 1", "onFocusChange: ")
-//                    mChatlistView.scrollToPosition(mChatListAdapter.getItemCount() - 1);
-//
-//                } else {
-//                    mChatlistView.scrollToPosition(mChatListAdapter.getItemCount() - 1);
-//
-//                    Log.d("FOCUS CHANGE 2", "onFocusChange: ")
-//
-//                }
-//            }
-//        })
