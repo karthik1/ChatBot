@@ -19,6 +19,7 @@ class ChatViewModel @Inject constructor(
     val chatRepository: ChatRepository
 ):ViewModel() {
 
+
     private val _viewState: MutableLiveData<ChatViewState> = MutableLiveData()
     private val _stateEvent: MutableLiveData<ChatStateEvent> = MutableLiveData()
 
@@ -73,9 +74,9 @@ class ChatViewModel @Inject constructor(
         _viewState.value = update
     }
 
-    fun loadTypedText(text: String) {
+    fun loadTypedText(chat: Chat) {
         val update = getCurrentViewStateOrNew()
-        update.text = text
+        update.chat = chat
         _viewState.value = update
     }
 
@@ -89,4 +90,5 @@ class ChatViewModel @Inject constructor(
     fun setStateEvent(event: ChatStateEvent) {
         _stateEvent.value = event
     }
+
 }

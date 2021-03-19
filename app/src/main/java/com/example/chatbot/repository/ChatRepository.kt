@@ -56,11 +56,12 @@ class ChatRepository @Inject constructor(
                     Log.d("MainActivity", "Current Timestamp: $format")
 
 
+
                     val chatRow = Chat(
                         senderOrBotText = botResponse,
                         chatWindowNum = chatWindowNum,
                         timeStamp = format,
-                        status = "nil"
+                        status = "recv"
 
                     )
 
@@ -73,7 +74,7 @@ class ChatRepository @Inject constructor(
                     CoroutineScope(Main).launch {
                         setValue(
                             DataState.success(
-                                data = ChatViewState()
+                                data = ChatViewState(chatList = null,chat = chatRow)
                             )
                         )
 

@@ -7,4 +7,32 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="grey">#E8E8E8</color>
+
+
+    <color name="floating_message_send">@color/green_dark</color>
+
+    <!-- Palette Greens -->
+    <color name="green_lightest">#e2ffc7</color>
+    <color name="green_light">#7eb0ad</color>
+    <color name="green">#16cc3e</color>
+    <color name="green_dark">#19887a</color>
+    <color name="green_darker">#0e5e55</color>
+    <color name="green_darkest">#00574B</color>
+
+    <color name="off_white">#fffafafa</color>
+    <color name="main_color_gray">#7d7d7d</color>
+
+    <color name="default_chat_message_background_color_rcv">@color/white</color>
+    <color name="default_chat_message_background_color_send">@color/white</color>
+
+    <color name="default_bubble_color_rcv">@color/black</color>
+    <color name="default_bubble_color_send">@color/white</color>
+
+    <color name="default_tstamp_color_rcv">@color/off_white</color>
+    <color name="default_tstamp_color_send">@color/main_color_gray</color>
+
+    <color name="default_message_color_rcv">@color/white</color>
+    <color name="default_message_color_send">@color/black</color>
+
 </resources>

@@ -19,6 +19,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.inject.Singleton
 
 @Module
@@ -73,6 +75,14 @@ object ChatModule {
         sessionManager: SessionManager,
     ): ChatRepository {
         return ChatRepository(chatDao,chatApiService,sessionManager)
+    }
+
+    @Singleton
+    @Provides
+    fun provideDateFormat(): SimpleDateFormat {
+        val sdf = SimpleDateFormat("yyyy-MM-dd hh:mm:ss a", Locale.ENGLISH)
+        sdf.timeZone = TimeZone.getTimeZone("UTC-7") // match firestore
+        return sdf
     }
 
 //    @Singleton

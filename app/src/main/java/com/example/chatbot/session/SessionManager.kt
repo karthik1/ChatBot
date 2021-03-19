@@ -8,6 +8,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
+@Singleton
 class SessionManager @Inject constructor(
      val application:Application
 ) {
