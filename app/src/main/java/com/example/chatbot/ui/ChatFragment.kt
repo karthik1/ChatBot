@@ -216,6 +216,8 @@ class ChatFragment : Fragment() {
             object : ConnectivityManager.NetworkCallback() {
                 override fun onAvailable(network: Network) {
                     super.onAvailable(network)
+
+                    Log.i("Tag", "got active connection")
                     if (mChatListAdapter?.itemCount != 0) {
                         var chat = chatList.get(mChatListAdapter.itemCount - 1)
                         if (chat.status.equals("offline")) {

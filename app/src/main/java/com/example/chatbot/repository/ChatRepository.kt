@@ -50,7 +50,7 @@ class ChatRepository @Inject constructor(
                         senderOrBotText = senderText,
                         chatWindowNum = chatWindowNum,
                         timeStamp = format,
-                        status = "send"
+                        status = onlineStatus
 
                     )
                     val rowId = chatDao.insert(chatRow)

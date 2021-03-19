@@ -7,8 +7,7 @@
     android:layout_height="wrap_content"
     android:paddingStart="72dp"
     android:paddingLeft="72dp"
-    android:paddingEnd="16dp"
-    android:paddingRight="16dp">
+    android:paddingRight="8dp">
 
 
 
