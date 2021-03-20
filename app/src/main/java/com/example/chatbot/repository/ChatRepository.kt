@@ -10,6 +10,9 @@ import com.example.chatbot.persistence.ChatDao
 import com.example.chatbot.session.SessionManager
 import com.example.chatbot.ui.state.ChatViewState
 import com.example.chatbot.util.AbsentLiveData
+import com.example.chatbot.util.Constants.API_KEY
+import com.example.chatbot.util.Constants.BOT_ID
+import com.example.chatbot.util.Constants.EXT_ID
 import com.example.chatbot.util.DataState
 import com.example.chatbot.util.Display
 import com.example.chatbot.util.GenericApiResponse
@@ -74,6 +77,7 @@ class ChatRepository @Inject constructor(
                     val botResponseObj = msgJsonObj?.getAsJsonPrimitive("message")
                     val botResponse = botResponseObj?.asString
 //                    val botResponse = botResponseObj?.asString
+
                     Log.d("SUCCESS RESPONSE", "handleApiSuccessResponse: ")
 
 
@@ -113,11 +117,10 @@ class ChatRepository @Inject constructor(
 
             override fun createCall(): LiveData<GenericApiResponse<MessageResponse>> {
                 return chatApiService.getBotResponse(
-                    "6nt5d1nJHkqbkphe",
+                    API_KEY,
                     senderText,
-                    "63906",
-                    "chirag1"
-
+                    BOT_ID,
+                    EXT_ID
                 )
             }
 

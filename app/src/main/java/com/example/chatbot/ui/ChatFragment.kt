@@ -55,7 +55,6 @@ class ChatFragment : Fragment() {
     val CURRENT_WINDOW: String = "current_window";
 
 
-
     var currentWindow: Int? = null
 
     var chatList: ArrayList<Chat> = ArrayList()
@@ -176,14 +175,17 @@ class ChatFragment : Fragment() {
     }
 
     fun checkForOfflineMessages() {
-        if (mChatListAdapter?.itemCount != 0) {
-            var chat = chatList.get(mChatListAdapter.itemCount - 1)
-            var status = chat.status
-            if (chat.status.equals("offline")) {
-                //Trigger GetResponseEvent
-                chat.senderOrBotText?.let {
-                    CoroutineScope(Main).launch {
-                        triggerGetResponseEvent(it, status, currentWindow)
+
+        if (sessionManager.isConnectedToTheInternet()) {
+            if (mChatListAdapter?.itemCount != 0) {
+                var chat = chatList.get(mChatListAdapter.itemCount - 1)
+                var status = chat.status
+                if (chat.status.equals("offline")) {
+                    //Trigger GetResponseEvent
+                    chat.senderOrBotText?.let {
+                        CoroutineScope(Main).launch {
+                            triggerGetResponseEvent(it, status, currentWindow)
+                        }
                     }
                 }
             }
@@ -203,7 +205,7 @@ class ChatFragment : Fragment() {
 
     }
 
-// STATE EVENTS
+    // STATE EVENTS
     private fun triggerLoadChatWindowEvent(chatWindowNum: Int?) {
 
         //Store the text if ter is any in the editted -- Later change it to hashmap

@@ -99,7 +99,7 @@ abstract class NetworkBoundResource<ResponseObject, ViewStateType>
             }
             is ApiErrorResponse -> {
                 Log.e(TAG, "NetworkBoundResource: ${response.errorMessage}")
-                onErrorReturn(response.errorMessage, true, false)
+                onErrorReturn(response.errorMessage, false, true)
             }
             is ApiEmptyResponse -> {
                 Log.e(TAG, "NetworkBoundResource: Request returned NOTHING (HTTP 204).")

@@ -14,10 +14,16 @@ object Constants {
     const val ERROR_CHECK_NETWORK_CONNECTION = "Check network connection."
     const val ERROR_UNKNOWN = "Unknown error"
 
+    const val API_KEY = "6nt5d1nJHkqbkphe"
+    const val BOT_ID = "63906"
+    const val EXT_ID = "chirag1"
+
     fun isNetworkError(msg: String): Boolean{
         when{
             msg.contains(UNABLE_TO_RESOLVE_HOST) -> return true
             else-> return false
         }
     }
+
+
 }
