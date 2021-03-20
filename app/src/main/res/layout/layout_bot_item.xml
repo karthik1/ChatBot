@@ -25,7 +25,7 @@
             android:layout_height="35dp"
             android:layout_marginTop="10dp"
             android:layout_weight="0.5"
-            android:src="@drawable/bot"
+            android:src="@drawable/bot_man"
             app:civ_border_color="#FF000000"
             app:civ_border_width="2dp" />
 
