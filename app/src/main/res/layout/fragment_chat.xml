@@ -48,8 +48,7 @@
                 android:paddingLeft="8dp"
                 android:background="@android:color/transparent"
                 android:hint="Type a message"
-                app:layout_constraintLeft_toRightOf="@+id/addEmoticon"
-                app:layout_constraintRight_toLeftOf="@+id/addAttachment" />
+                />
 
 
         </FrameLayout>
