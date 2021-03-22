@@ -1,7 +1,6 @@
 package com.example.chatbot.ui
 
 import android.content.Context
-import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.net.Network
@@ -20,17 +19,16 @@ import com.example.chatbot.model.Chat
 import com.example.chatbot.model.ChatFactory
 import com.example.chatbot.session.SessionManager
 import com.example.chatbot.ui.state.ChatStateEvent.*
+import com.example.chatbot.util.Constants.CURRENT_WINDOW
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 @AndroidEntryPoint
-class ChatFragment : Fragment() {
+class ChatFragment : Fragment(), FragmentListener {
 
 
     @Inject
@@ -52,10 +50,8 @@ class ChatFragment : Fragment() {
     lateinit var sharedPreference: SharedPreferences
     lateinit var preferenceEditor: SharedPreferences.Editor
 
-    val CURRENT_WINDOW: String = "current_window";
 
-
-    var currentWindow: Int? = null
+    var currentWindow: Int = 1
 
     var chatList: ArrayList<Chat> = ArrayList()
     var offlineList: ArrayList<Chat> = ArrayList()
@@ -77,33 +73,23 @@ class ChatFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setHasOptionsMenu(true) //Create a menu with 2 chat windows item and one new window item
 
+
         initRecyclerViewAdapter()
 
         setSendButtonClick()
 
         networkConnectivityCallBack()
 
-        initSharedPref()
+//        initSharedPref()
 
         subscribeObservers()
 
         triggerLoadChatWindowEvent(currentWindow)
 
-
+        (activity as MainActivity)?.setActivityListener(this)
     }
 
-    private fun initSharedPref() {
-        sharedPreference = this.requireActivity().getSharedPreferences("pref", Context.MODE_PRIVATE)
-        preferenceEditor = sharedPreference.edit()
 
-        currentWindow = sharedPreference.getInt(CURRENT_WINDOW, 0)
-
-        if (currentWindow == 0) {
-            preferenceEditor.putInt(CURRENT_WINDOW, 1)
-            currentWindow = 1
-        }
-        preferenceEditor.commit()
-    }
 
     private fun setSendButtonClick() {
 
@@ -199,7 +185,6 @@ class ChatFragment : Fragment() {
         mChatlistView.layoutManager = layoutManager
         layoutManager.stackFromEnd = true
         mChatlistView.apply {
-//            layoutManager = LinearLayoutManager(activity)
             adapter = mChatListAdapter
         }
 
@@ -208,10 +193,8 @@ class ChatFragment : Fragment() {
     // STATE EVENTS
     private fun triggerLoadChatWindowEvent(chatWindowNum: Int?) {
 
-        //Store the text if ter is any in the editted -- Later change it to hashmap
         mChatViewModel.setStateEvent(SwitchChatWindowEvent(chatWindowNum));
     }
-
 
     //Dint use this case
     private fun triggerNewChatWindowEvent() {
@@ -227,53 +210,6 @@ class ChatFragment : Fragment() {
     private fun updateRecyclerViewAdapter(list: List<Chat>) {
         mChatListAdapter.submitList(list)
         mChatlistView.scrollToPosition(mChatListAdapter.getItemCount() - 1);
-    }
-
-//MENU RELATED
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.chat_menu, menu)
-
-        // TODO --> Menu for MultipleWindows
-//        inflater.inflate(R.menu.main_menu, menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.chat_1 -> {
-                if (currentWindow != 1) {
-                    currentWindow = 1
-                    preferenceEditor.putInt(CURRENT_WINDOW, currentWindow!!)
-                    triggerLoadChatWindowEvent(currentWindow)
-                }
-            }
-            R.id.chat_2 -> {
-                if (currentWindow != 2) {
-                    currentWindow = 2
-                    preferenceEditor.putInt(CURRENT_WINDOW, currentWindow!!)
-                    triggerLoadChatWindowEvent(currentWindow)
-                }
-
-            }
-            R.id.chat_3 -> {
-                if (currentWindow != 3) {
-
-                    currentWindow = 3
-                    preferenceEditor.putInt(CURRENT_WINDOW, currentWindow!!)
-                    triggerLoadChatWindowEvent(currentWindow)
-
-                }
-            }
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
-// For Dynamic Implementation
-
-    override fun onPrepareOptionsMenu(menu: Menu) {
-
-        super.onPrepareOptionsMenu(menu)
     }
 
 
@@ -316,4 +252,63 @@ class ChatFragment : Fragment() {
 
         super.onDestroy()
     }
+
+    override fun switchWindows(currentWindow:Int) {
+        this.currentWindow = currentWindow
+        triggerLoadChatWindowEvent(currentWindow)
+    }
 }
+
+
+
+
+//override fun onOptionsItemSelected(item: MenuItem): Boolean {
+//
+//    return when (item.itemId) {
+//        R.id.chat_1 -> {
+//            if (currentWindow != 1) {
+//                currentWindow = 1
+//                preferenceEditor.putInt(CURRENT_WINDOW, currentWindow!!)
+//                triggerLoadChatWindowEvent(currentWindow)
+//                item.isChecked = true
+//            }
+//            true
+//        }
+//        R.id.chat_2 -> {
+//            if (currentWindow != 2) {
+//                currentWindow = 2
+//                preferenceEditor.putInt(CURRENT_WINDOW, currentWindow!!)
+//                triggerLoadChatWindowEvent(currentWindow)
+//                item.isChecked = true
+//            }
+//            true
+//
+//        }
+//        R.id.chat_3 -> {
+//            if (currentWindow != 3) {
+//
+//                currentWindow = 3
+//                preferenceEditor.putInt(CURRENT_WINDOW, currentWindow!!)
+//                triggerLoadChatWindowEvent(currentWindow)
+//                item.isChecked = true
+//            }
+//            true
+//        }
+//        else -> return super.onOptionsItemSelected(item)
+//    }
+//
+//}
+
+//
+//private fun initSharedPref() {
+//    sharedPreference = this.requireActivity().getSharedPreferences("pref", Context.MODE_PRIVATE)
+//    preferenceEditor = sharedPreference.edit()
+//
+//    currentWindow = sharedPreference.getInt(CURRENT_WINDOW, 0)
+//
+//    if (currentWindow == 0) {
+//        preferenceEditor.putInt(CURRENT_WINDOW, 1)
+//        currentWindow = 1
+//    }
+//    preferenceEditor.commit()
+//}

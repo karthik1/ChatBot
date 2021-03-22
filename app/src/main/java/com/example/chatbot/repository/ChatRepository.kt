@@ -106,7 +106,7 @@ class ChatRepository @Inject constructor(
 
                     if (rowId > -1)
                         CoroutineScope(Main).launch {
-                            setValue(
+                            onCompleteJob(
                                 DataState.success(
                                     data = ChatViewState(chatList = null, chat = chatRow)
                                 )
@@ -145,16 +145,12 @@ class ChatRepository @Inject constructor(
 
                 CoroutineScope(Main).launch {
 
-                    setValue(
+                    onCompleteJob(
                         DataState.success(
                             data = ChatViewState(chatList = chatlist, null),
                             display = null
                         )
                     )
-//                   }else
-//                   {
-//                      onErrorReturn("Chat History Not Found",false,true)
-//                   }
 
                     if (chatlist == null)
                         onErrorReturn("Failed to load from DB", false, true)

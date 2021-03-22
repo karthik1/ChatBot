@@ -6,4 +6,13 @@
     <string name="text_error">Error</string>
     <string name="text_success">Success</string>
     <string name="text_ok">OK</string>
+    <string name="nav_header_title">Chat Bot</string>
+    <string name="nav_header_desc">Navigation header</string>
+
+    <string name="chat_window_label">Chat Window</string>
+    <string name="add_new_window_label">Add New Window</string>
+
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
 </resources>
