@@ -256,8 +256,10 @@ class ChatFragment : Fragment(), FragmentListener {
     override fun switchWindows(currentWindow:Int) {
         this.currentWindow = currentWindow
         triggerLoadChatWindowEvent(currentWindow)
+        mBinding.messageInput.setText("");
     }
 }
+
 
 
 

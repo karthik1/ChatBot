@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -28,7 +29,8 @@ import javax.inject.Inject
 
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity(), DataStateListener,NavigationDrawerListAdapter.Interaction {
+class MainActivity : AppCompatActivity(), DataStateListener,
+    NavigationDrawerListAdapter.Interaction {
 
     @Inject
     lateinit var repository: ChatRepository
@@ -63,7 +65,7 @@ class MainActivity : AppCompatActivity(), DataStateListener,NavigationDrawerList
         drawerLayout = mBinding.drawerLayout
         toolbar = mBinding.appBarMain.toolbar
 
-        toolbar.setTitle(CHAT_WINDOW+ DEFAULT_CHAT_WINDOW_NUM)
+        toolbar.setTitle(CHAT_WINDOW + DEFAULT_CHAT_WINDOW_NUM)
         setSupportActionBar(toolbar)
         toggle = ActionBarDrawerToggle(
             this,
@@ -72,13 +74,39 @@ class MainActivity : AppCompatActivity(), DataStateListener,NavigationDrawerList
             R.string.navigation_drawer_open,
             R.string.navigation_drawer_close
         )
-        drawerLayout.addDrawerListener(toggle)
+
+        addDrawerListener()
         toggle.syncState()
 
 
         initSharedPref()
         initNavigationRecyclerView()
         showMainFragment()
+
+
+
+    }
+
+    private fun addDrawerListener() {
+        drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener
+        {
+            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+                val imm: InputMethodManager =
+                    getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(drawerView.getWindowToken(), 0)
+            }
+
+            override fun onDrawerOpened(drawerView: View) {
+
+            }
+
+            override fun onDrawerClosed(drawerView: View) {
+            }
+
+            override fun onDrawerStateChanged(newState: Int) {
+            }
+
+        })
     }
 
 
@@ -86,8 +114,7 @@ class MainActivity : AppCompatActivity(), DataStateListener,NavigationDrawerList
         fragmentListener = listener
     }
 
-    fun initSharedPref()
-    {
+    fun initSharedPref() {
         sharedPreference = this.getSharedPreferences("pref", Context.MODE_PRIVATE)
         preferenceEditor = sharedPreference.edit()
 
@@ -117,8 +144,7 @@ class MainActivity : AppCompatActivity(), DataStateListener,NavigationDrawerList
         val numOfChatWindows = sharedPreference.getInt(WINDOW_MAX, 1)
 
         //To inflated Created Chat Window list
-        for(i in 1 .. numOfChatWindows)
-        {
+        for (i in 1..numOfChatWindows) {
             chatWindowList.add(NavigationAdapterItemModel(CHAT_WINDOW, i))
         }
 
@@ -127,7 +153,7 @@ class MainActivity : AppCompatActivity(), DataStateListener,NavigationDrawerList
         rcView = mBinding.rvChatWindow
         rcView.layoutManager = LinearLayoutManager(this)
         rcView.setHasFixedSize(true)
-        adapter = NavigationDrawerListAdapter(this,this)
+        adapter = NavigationDrawerListAdapter(this, this)
         rcView.adapter = adapter
         adapter.submitList(chatWindowList)
     }
@@ -178,10 +204,9 @@ class MainActivity : AppCompatActivity(), DataStateListener,NavigationDrawerList
     }
 
 
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if(toggle.onOptionsItemSelected(item))
-        {
+        if (toggle.onOptionsItemSelected(item)) {
+
             return true
         }
         return super.onOptionsItemSelected(item)
@@ -200,14 +225,13 @@ class MainActivity : AppCompatActivity(), DataStateListener,NavigationDrawerList
             preferenceEditor.commit()
 
         } else {//Switch to selected one
-            if(currentWindow != position+1) {
+            if (currentWindow != position + 1) {
 
                 currentWindow = position + 1
                 toolbar.setTitle("Chat Window " + "$currentWindow")
                 adapter.selected_item = position;
                 adapter.notifyDataSetChanged()
                 fragmentListener.switchWindows(currentWindow!!)
-
             }
             drawerLayout.closeDrawers()
         }
