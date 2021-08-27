@@ -96,7 +96,7 @@ class ChatFragment : Fragment(), FragmentListener {
         mBinding.buttonSend.setOnClickListener(View.OnClickListener {
 
             val message = mBinding.messageInput.text.toString()
-            if (message.length > 0 && !message.equals("")) {
+            if (message.isNotEmpty() && message != "") {
                 val chat: Chat
 
                 if (sessionManager.isConnectedToTheInternet())
@@ -186,6 +186,7 @@ class ChatFragment : Fragment(), FragmentListener {
         layoutManager.stackFromEnd = true
         mChatlistView.apply {
             adapter = mChatListAdapter
+           // layoutManager = LinearLayoutManager(context)
         }
 
     }

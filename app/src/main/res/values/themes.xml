@@ -22,5 +22,6 @@
 
 
     <style name="Theme.ChatBot.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
     <style name="Theme.ChatBot.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>

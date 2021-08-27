@@ -20,4 +20,8 @@ interface ChatDao {
     @Query("SELECT distinct * FROM chat_table WHERE chat_window_number = :pk")
     suspend fun searchByWindowNum(pk: Int?): List<Chat>?
 
+    @Query("SELECT distinct * FROM chat_table WHERE chat_window_number = :pk")
+    fun searchByWindowNumLiveData(pk: Int?): LiveData<List<Chat>?>
+
+
 }

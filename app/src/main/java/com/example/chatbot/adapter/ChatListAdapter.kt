@@ -88,8 +88,7 @@ class ChatListAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         return chatList.size
     }
 
-    fun addSingleMsg(chat:Chat)
-    {
+    fun addSingleMsg(chat: Chat) {
 //        val list = differ.currentList.toMutableList()
 //        list.add(chat)
 //        Log.d(" SIZE IN ADAPTER", "addSingleMsg: " + list.size)
@@ -103,22 +102,19 @@ class ChatListAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         chatList = list
         notifyDataSetChanged()
 
-
     }
 
     class SendViewHolder
         (
         val senderBinding: LayoutSenderItemBinding
     ) : RecyclerView.ViewHolder(senderBinding.root) {
-//        val mBotItemBinding = botBinding
-//        val mSenderItemBinding = senderBinding
+
     }
 
     class BotViewHolder
         (
         val botBinding: LayoutBotItemBinding
     ) : RecyclerView.ViewHolder(botBinding.root) {
-//        val mBotItemBinding = botBinding
-//        val mSenderItemBinding = senderBinding
+
     }
 }

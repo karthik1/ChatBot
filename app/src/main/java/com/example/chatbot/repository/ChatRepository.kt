@@ -17,6 +17,8 @@ import com.example.chatbot.util.DataState
 import com.example.chatbot.util.Display
 import com.example.chatbot.util.GenericApiResponse
 import com.example.chatbot.util.GenericApiResponse.*
+import dagger.hilt.android.scopes.ActivityRetainedScoped
+import dagger.hilt.android.scopes.ActivityScoped
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
@@ -24,7 +26,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
 
-
+@ActivityRetainedScoped
 class ChatRepository @Inject constructor(
     val chatDao: ChatDao,
     val chatApiService: ChatApiService,

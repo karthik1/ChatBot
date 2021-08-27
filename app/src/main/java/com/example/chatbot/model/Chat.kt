@@ -11,10 +11,10 @@ data class Chat(
 
     @PrimaryKey(autoGenerate = false)
     @ColumnInfo(name = "chat_id")
-    val chatId: String ,
+    var chatId: String ,
 
     @ColumnInfo(name = "text_message")
-    val senderOrBotText: String? = null,
+    var senderOrBotText: String? = null,
 
     @ColumnInfo(name = "chat_window_number")
     var chatWindowNum: Int?=null,

@@ -55,7 +55,6 @@ abstract class NetworkBoundResource<ResponseObject, ViewStateType>
                             result.removeSource(apiResponse)
 
                             coroutineScope.launch {
-                                Log.d(TAG, "HANDLEEEEEEEE: ")
                                 handleNetworkCall(response)
                             }
                         }

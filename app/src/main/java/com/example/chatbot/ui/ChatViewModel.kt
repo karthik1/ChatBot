@@ -12,16 +12,19 @@ import com.example.chatbot.ui.state.ChatViewState
 import com.example.chatbot.util.AbsentLiveData
 import com.example.chatbot.util.DataState
 import dagger.hilt.android.scopes.ActivityRetainedScoped
+import dagger.hilt.android.scopes.ViewModelScoped
 import javax.inject.Inject
 
-@ActivityRetainedScoped
+@ViewModelScoped
 class ChatViewModel @Inject constructor(
     val chatRepository: ChatRepository
-):ViewModel() {
+) : ViewModel() {
 
 
     private val _viewState: MutableLiveData<ChatViewState> = MutableLiveData()
     private val _stateEvent: MutableLiveData<ChatStateEvent> = MutableLiveData()
+
+    private val ter = 23;
 
     val viewState: LiveData<ChatViewState>
         get() = _viewState
@@ -44,7 +47,11 @@ class ChatViewModel @Inject constructor(
 
             is GetResponseEvent -> {
 
-                return chatRepository.getBotResponse(stateEvent.message,stateEvent.status,stateEvent.chatWindowNum)
+                return chatRepository.getBotResponse(
+                    stateEvent.message,
+                    stateEvent.status,
+                    stateEvent.chatWindowNum
+                )
             }
 
             is AddNewWindowEvent -> {
@@ -53,7 +60,7 @@ class ChatViewModel @Inject constructor(
                 //add num to windownumlist
                 return AbsentLiveData.create()
             }
-            is None ->{
+            is None -> {
                 return AbsentLiveData.create()
             }
         }
@@ -65,6 +72,7 @@ class ChatViewModel @Inject constructor(
         update.chatList = chatList
         update.chat = null;
         _viewState.value = update
+
     }
 
     fun loadTypedText(chat: Chat) {
@@ -72,6 +80,7 @@ class ChatViewModel @Inject constructor(
         update.chat = chat
         update.chatList = null
         _viewState.value = update
+
     }
 
     private fun getCurrentViewStateOrNew(): ChatViewState {

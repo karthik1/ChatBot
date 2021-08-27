@@ -1,12 +1,14 @@
 package com.example.chatbot.ui
 
 import android.content.Context
+import android.app.Activity
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -31,12 +33,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(), DataStateListener,
     NavigationDrawerListAdapter.Interaction {
-
-    @Inject
-    lateinit var repository: ChatRepository
-
-    @Inject
-    lateinit var viewModel: ChatViewModel
 
     //    private lateinit var appBarConfiguration:
     lateinit var toolbar: Toolbar
@@ -78,7 +74,7 @@ class MainActivity : AppCompatActivity(), DataStateListener,
         addDrawerListener()
         toggle.syncState()
 
-
+//Toast.makeText(this,"Show",Toast.LENGTH_LONG).show()
         initSharedPref()
         initNavigationRecyclerView()
         showMainFragment()
@@ -109,6 +105,10 @@ class MainActivity : AppCompatActivity(), DataStateListener,
         })
     }
 
+    override fun onResume() {
+        super.onResume()
+//        setContentView(R.layout.dummy_layout)
+    }
 
     fun setActivityListener(listener: FragmentListener) {
         fragmentListener = listener
@@ -156,6 +156,7 @@ class MainActivity : AppCompatActivity(), DataStateListener,
         adapter = NavigationDrawerListAdapter(this, this)
         rcView.adapter = adapter
         adapter.submitList(chatWindowList)
+
     }
 
     override fun onDataStateChange(dataState: DataState<*>?) {
@@ -183,6 +184,7 @@ class MainActivity : AppCompatActivity(), DataStateListener,
                 is DisplayType.Dialog -> {
                     it.response.message?.let { message ->
                         displaySuccessDialog(message)
+
                     }
                 }
 
@@ -232,6 +234,7 @@ class MainActivity : AppCompatActivity(), DataStateListener,
                 adapter.selected_item = position;
                 adapter.notifyDataSetChanged()
                 fragmentListener.switchWindows(currentWindow!!)
+
             }
             drawerLayout.closeDrawers()
         }
